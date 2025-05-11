@@ -1,0 +1,37 @@
+
+version: '3'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./build:/app/build  
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - HOST=0.0.0.0
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+      - /app/node_modules  # Ensure node_modules is mounted for dependencies
+    command: ["npm", "run", "test", "--", "--watchAll", "--watchOptions.poll=1000"]  # Watch mode enabled
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - CI=false  # Disable CI mode to enable interactive Jest menu
+    tty: true
+    stdin_open: true  # Enable interactive terminal for Jest's watch mode
+  builder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./build:/app/build
